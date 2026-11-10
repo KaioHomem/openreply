@@ -18,12 +18,23 @@ function createPrismaClient() {
   // "Can't reach database server", which reads like an outage rather than an
   // exhausted pool. The cap is per-environment: small on Vercel, a bit higher
   // on the worker, which is a single long-lived process.
+  // The driver adapter qualifies every table with a schema and defaults to
+  // "public"; the role's search_path does not change that. Deployments that keep
+  // the tables in another schema set DATABASE_SCHEMA (or ?schema= on the URL).
+  const schema =
+    process.env.DATABASE_SCHEMA ||
+    new URL(databaseUrl).searchParams.get("schema") ||
+    undefined;
+
   return new PrismaClient({
-    adapter: new PrismaPg({
-      connectionString: databaseUrl,
-      max: Number(process.env.DB_POOL_MAX ?? 3),
-      idleTimeoutMillis: 10_000,
-    }),
+    adapter: new PrismaPg(
+      {
+        connectionString: databaseUrl,
+        max: Number(process.env.DB_POOL_MAX ?? 3),
+        idleTimeoutMillis: 10_000,
+      },
+      schema ? { schema } : undefined
+    ),
   });
 }
 
