@@ -244,6 +244,30 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
       .catch(() => setAccounts([]));
   }, []);
 
+  // New campaigns start with the deployment's default guide link, built from
+  // the first keyword (e.g. HISTÓRIA -> <base>/historia/?utm_...). It follows
+  // the keyword until the user edits the URL by hand. Off unless
+  // NEXT_PUBLIC_DEFAULT_GUIDE_URL_BASE is set at build time.
+  const [linkTouched, setLinkTouched] = useState(false);
+  useEffect(() => {
+    if (mode !== "new" || linkTouched) return;
+    const base = (process.env.NEXT_PUBLIC_DEFAULT_GUIDE_URL_BASE ?? "").replace(/\/+$/, "");
+    if (!base) return;
+    const slug = (keywordText.split(",")[0] ?? "")
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    setLinkOpen(true);
+    setTrackedDestinationUrl(
+      slug
+        ? `${base}/${slug}/?utm_source=instagram&utm_medium=dm&utm_campaign=${slug}`
+        : `${base}/`
+    );
+    setLinkButtonLabel(process.env.NEXT_PUBLIC_DEFAULT_LINK_LABEL || "Open link");
+  }, [mode, keywordText, linkTouched]);
+
   // Prefill when editing.
   useEffect(() => {
     if (mode !== "edit" || !campaignId) return;
@@ -893,7 +917,10 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
               <div className="space-y-2">
                 <input
                   value={trackedDestinationUrl}
-                  onChange={(e) => setTrackedDestinationUrl(e.target.value)}
+                  onChange={(e) => {
+                    setLinkTouched(true);
+                    setTrackedDestinationUrl(e.target.value);
+                  }}
                   onBlur={ensureLinkToken}
                   placeholder="https://yourlink.com/offer"
                   className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
