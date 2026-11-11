@@ -28,7 +28,13 @@ export async function GET(request: NextRequest, { params }: RedirectRouteProps) 
   });
 
   if (!trackedLink) {
-    return NextResponse.redirect(new URL("/", request.url), { status: 302 });
+    // Behind a proxy request.url is the internal address (e.g. localhost:10000),
+    // so fall back to the configured default destination or the public app URL.
+    const fallback =
+      process.env.NEXT_PUBLIC_DEFAULT_GUIDE_URL_BASE ||
+      process.env.NEXTAUTH_URL ||
+      new URL("/", request.url).toString();
+    return NextResponse.redirect(fallback, { status: 302 });
   }
 
   await prisma.linkClick.create({
