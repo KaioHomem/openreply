@@ -268,6 +268,20 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
     setLinkButtonLabel(process.env.NEXT_PUBLIC_DEFAULT_LINK_LABEL || "Open link");
   }, [mode, keywordText, linkTouched]);
 
+  // New campaigns also start with the deployment's default opening DM (the
+  // "follow me / tap for the link" step), when one is configured at build time.
+  // NEXT_PUBLIC_DEFAULT_OPENING_DM_ENABLED=true switches it on by default; it
+  // needs working Meta webhooks, since the button tap arrives as a postback.
+  useEffect(() => {
+    if (mode !== "new") return;
+    const msg = (process.env.NEXT_PUBLIC_DEFAULT_OPENING_DM_MESSAGE ?? "").replace(/\\n/g, "\n");
+    const btn = process.env.NEXT_PUBLIC_DEFAULT_OPENING_DM_BUTTON ?? "";
+    if (!msg || !btn) return;
+    setOpeningDmMessage(msg);
+    setOpeningDmButtonLabel(btn);
+    setOpeningDmEnabled(process.env.NEXT_PUBLIC_DEFAULT_OPENING_DM_ENABLED === "true");
+  }, [mode]);
+
   // Prefill when editing.
   useEffect(() => {
     if (mode !== "edit" || !campaignId) return;
