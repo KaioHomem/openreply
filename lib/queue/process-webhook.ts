@@ -17,6 +17,15 @@ export async function processInstagramWebhook({ payload: incoming, provider, wor
   const accountMap = new Map(accounts.map(a => [a.instagramId, a]));
   const allowed = new Set(accountMap.keys());
   const payload = { ...incoming, entry: incoming.entry.filter(e => allowed.has(e.id)) };
+  // Diagnostics: a webhook whose entry ids match no connected account used to
+  // vanish without a trace. Log the ids and the fields so the mismatch is visible.
+  console.log(
+    `[webhook] ${provider} entries=${incoming.entry.length} matched=${payload.entry.length} ids=${incoming.entry
+      .map(e => e.id)
+      .join(",")} keys=${incoming.entry
+      .map(e => Object.keys(e).join("+"))
+      .join(",")}`
+  );
   if (!payload.entry.length) return;
   const webhookEvent = await prisma.webhookEvent.create({
     data: {

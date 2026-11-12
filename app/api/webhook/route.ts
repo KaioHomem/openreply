@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-hub-signature-256");
+  console.log(`[webhook] POST bytes=${rawBody.length} signed=${Boolean(signature)}`);
 
   if (!verifyWebhookSignature(rawBody, signature)) {
     // Record the attempt so a signature mismatch is visible rather than a
