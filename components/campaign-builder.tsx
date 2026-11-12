@@ -272,6 +272,19 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
   // "follow me / tap for the link" step), when one is configured at build time.
   // NEXT_PUBLIC_DEFAULT_OPENING_DM_ENABLED=true switches it on by default; it
   // needs working Meta webhooks, since the button tap arrives as a postback.
+  // New campaigns also start with the deployment's default pool of public
+  // replies (NEXT_PUBLIC_DEFAULT_PUBLIC_REPLIES, separated by "|"), turned on.
+  useEffect(() => {
+    if (mode !== "new") return;
+    const pool = (process.env.NEXT_PUBLIC_DEFAULT_PUBLIC_REPLIES ?? "")
+      .split("|")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (pool.length === 0) return;
+    setPublicReplyMessages(pool);
+    setPublicReplyEnabled(true);
+  }, [mode]);
+
   useEffect(() => {
     if (mode !== "new") return;
     const msg = (process.env.NEXT_PUBLIC_DEFAULT_OPENING_DM_MESSAGE ?? "").replace(/\\n/g, "\n");
@@ -834,7 +847,7 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
                   )}
                 </div>
               ))}
-              {publicReplyMessages.length < 10 && (
+              {publicReplyMessages.length < 30 && (
                 <button
                   type="button"
                   onClick={() =>

@@ -53,7 +53,7 @@ const createAutomationSchema = z
     publicReplyMessage: z.string().max(1000).optional().nullable(),
     publicReplyMessages: z
       .array(z.string().max(1000))
-      .max(10)
+      .max(30)
       .optional()
       .default([]),
     // Empty string means "no tracked link"; a URL sets one.
@@ -113,7 +113,7 @@ const updateAutomationSchema = z.object({
   followUpDelayMinutes: z.number().int().min(0).max(1440).optional(),
   publicReplyEnabled: z.boolean().optional(),
   publicReplyMessage: z.string().max(1000).optional().nullable(),
-  publicReplyMessages: z.array(z.string().max(1000)).max(10).optional(),
+  publicReplyMessages: z.array(z.string().max(1000)).max(30).optional(),
   isActive: z.boolean().optional(),
   wholeWordMatch: z.boolean().optional(),
   reportShareEnabled: z.boolean().optional(),
